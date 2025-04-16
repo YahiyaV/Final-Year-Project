@@ -1,0 +1,138 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    background-image: url("/static/assets/DNA.png");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: #ffffff;
+    text-align: center;
+}
+
+.container {
+    padding: 20px;
+}
+
+h1 {
+    font-size: 3rem;
+    text-shadow: 0px 0px 5px #fff;
+}
+
+.upload-section {
+    margin: 20px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.file-input {
+    padding: 10px;
+    border-radius: 5px;
+    border: none;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.confirm-btn {
+    padding: 10px 20px;
+    background: rgba(0, 150, 255, 0.7);
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 150, 255, 1);
+}
+
+.confirm-btn:hover {
+    background: rgba(0, 150, 255, 1);
+}
+
+.result-table {
+    width: 80%;
+    margin: 20px auto;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    color: white;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    text-align: center;
+}
+
+th:nth-child(1), td:nth-child(1) { width: 30%; }
+th:nth-child(2), td:nth-child(2) { width: 10%; }
+th:nth-child(3), td:nth-child(3) { width: 10%; }
+th:nth-child(4), td:nth-child(4) { width: 10%; }
+th:nth-child(5), td:nth-child(5) { width: 10%; }
+th:nth-child(6), td:nth-child(6) { width: 10%; }
+th:nth-child(7), td:nth-child(7) { width: 20%; }
+
+th {
+    background: rgba(255, 255, 255, 0.2);
+}
+.logomaker {
+    width: 80%;
+    margin: 30px auto;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    color: white;
+    max-height: 50vh;
+    overflow-y: auto;
+    display:inline-block;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.logomaker p {
+    text-align: center;
+}
+
+.logo-item {
+    width: 100%;
+    text-align: center;
+}
+
+.logo-item p {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+
+.logo-image {
+    max-width: 80%;
+    height: auto;
+    border: 5px solid rgba(255, 255, 255, 0.5);
+    border-radius: 5px;
+    transition: transform 0.5s ease;
+}
+
+.logo-image:hover {
+    transform: scale(1.0);
+}
+
+.parallel-plot {
+    width: 80%;
+    margin: 30px auto;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    color: white;
+}
+
+.parallel-plot p {
+    margin-bottom: 10px;
+    font-size: 1.2em;
+}

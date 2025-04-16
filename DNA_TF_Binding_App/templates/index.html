@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA Sequence Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <!-- Add Plotly.js with a fallback -->
+    <script src="https://cdn.plotly.com/plotly-latest.min.js"></script>
+    <script>
+        // Fallback if CDN fails
+        if (typeof Plotly === 'undefined') {
+            document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.30.0/plotly.min.js"><\/script>');
+        }
+    </script>
+    <style>
+        /* Add button styling */
+        #molstar-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        #molstar-button:hover {
+            background-color: #45a049;
+        }
+        /* Adjust chart container */
+        .parallel-plot {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DEEPTFBIND: A HYBRID MODEL FOR TRANSCRIPTION FACTOR BINDING SITE PREDICTION</h1>
+        
+        <!-- File Upload Section -->
+        <div class="upload-section">
+            <input type="file" id="dnaFile" class="file-input" accept=".txt">
+            <button class="confirm-btn" onclick="uploadFile()">CONFIRM</button>
+        </div>
+
+        <!-- Table to Display Results -->
+        <div class="result-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>DNA Sequence</th>
+                        <th>Probability</th>
+                        <th>TF Binding Affinity</th>
+                        <th>Specificity</th>
+                        <th>P53 Affinity</th>
+                        <th>P53 Specificity</th>
+                        <th>Risk Level</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsTable">
+                    <!-- Data will be inserted dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="logomaker">
+            <p>TF Binding Spot Logos</p>
+            <div id="logoContainer"></div>
+        </div>
+
+        <!-- Grouped Bar Chart Visualization -->
+        <div class="parallel-plot">
+            <p>Specificity Scores Grouped Bar Chart</p>
+            <div id="stackedBarChart" style="height: 600px; width: 100%;"></div>
+        </div>
+
+        <!-- Mol* Viewer Button -->
+        <button id="molstar-button" onclick="openMolstarViewer()">Open Mol* Viewer</button>
+    </div>
+
+    <script>
+        function uploadFile() {
+            let fileInput = document.getElementById('dnaFile');
+            let file = fileInput.files[0];
+
+            if (!file) {
+                alert("Please select a file!");
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                let tableBody = document.getElementById('resultsTable');
+                tableBody.innerHTML = '';
+
+                if (!data.results || data.results.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="7">No results available.</td></tr>';
+                    console.error('No results data received');
+                    return;
+                }
+
+                data.results.forEach(row => {
+                    let newRow = `<tr>
+                        <td>${row.sequence}</td>
+                        <td>${row.probability.toFixed(3)}</td>
+                        <td>${row.affinity}</td>
+                        <td>${row.specificity.toFixed(3)}</td>
+                        <td>${row.p53_affinity.toFixed(3)}</td>
+                        <td>${row.p53_specificity.toFixed(3)}</td>
+                        <td style="color: ${row.risk_color}">${row.risk_level}</td>
+                    </tr>`;
+                    tableBody.innerHTML += newRow;
+                });
+
+                let logoContainer = document.getElementById('logoContainer');
+                logoContainer.innerHTML = '';
+                if (data.results.some(row => row.logo_path)) {
+                    data.results.forEach(row => {
+                        if (row.logo_path) {
+                            logoContainer.innerHTML += `
+                                <div class="logo-item">
+                                    <p>Sequence ${row.index}</p>
+                                    <img src="${row.logo_path}" alt="TF Binding Logo - Sequence ${row.index}" class="logo-image">
+                                </div>`;
+                        }
+                    });
+                } else {
+                    logoContainer.innerHTML = '<p>No logos generated.</p>';
+                }
+
+                // Prepare data for grouped bar chart
+                let sequenceIndices = data.results.map(row => `Seq ${row.index}`);
+                let genSpecValues = data.results.map(row => Number(row.specificity) || 0);
+                let p53SpecValues = data.results.map(row => Number(row.p53_specificity) || 0);
+
+                if (genSpecValues.length === 0 || p53SpecValues.length === 0 || genSpecValues.length !== p53SpecValues.length) {
+                    console.error('Invalid or mismatched specificity values:', { genSpecValues, p53SpecValues });
+                    document.getElementById('stackedBarChart').innerHTML = 'No valid data to plot.';
+                    return;
+                }
+
+                const colors = [
+                    '#377eb8', // Blue for General TF Specificity
+                    '#e41a1c'  // Red for TP53 Specificity
+                ];
+
+                let barData = [
+                    {
+                        x: sequenceIndices,
+                        y: genSpecValues,
+                        name: 'General TF Specificity',
+                        type: 'bar',
+                        marker: { color: colors[0] }
+                    },
+                    {
+                        x: sequenceIndices,
+                        y: p53SpecValues,
+                        name: 'TP53 Specificity',
+                        type: 'bar',
+                        marker: { color: colors[1] }
+                    }
+                ];
+
+                let layout = {
+                    title: 'Specificity Scores Grouped Bar Chart',
+                    height: 600,
+                    width: null,
+                    barmode: 'group',
+                    plot_bgcolor: 'rgba(0, 0, 0, 0.5)',
+                    paper_bgcolor: 'rgba(0, 0, 0, 0.5)',
+                    font: { color: '#ffffff' },
+                    margin: { t: 50, l: 50, r: 50, b: 100 },
+                    xaxis: {
+                        tickangle: -45,
+                        automargin: true
+                    },
+                    yaxis: {
+                        title: 'Specificity Score',
+                        range: [0, 1]
+                    },
+                    legend: {
+                        orientation: 'h',
+                        y: -0.2
+                    }
+                };
+
+                let config = {
+                    responsive: true
+                };
+
+                try {
+                    Plotly.newPlot('stackedBarChart', barData, layout, config);
+                    console.log('Grouped bar chart rendered successfully');
+                } catch (error) {
+                    console.error('Error rendering grouped bar chart:', error);
+                    document.getElementById('stackedBarChart').innerHTML = 'Error rendering chart. Check console for details.';
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                alert('An error occurred while processing the file: ' + error.message);
+            });
+        }
+
+        function openMolstarViewer() {
+            const width = 800;
+            const height = 600;
+            const left = (window.screen.width - width) / 2;
+            const top = (window.screen.height - height) / 2;
+            window.open('https://molstar.org/viewer/', '_blank', `width=${width},height=${height},left=${left},top=${top},resizable=yes`);
+        }
+    </script>
+</body>
+</html>
