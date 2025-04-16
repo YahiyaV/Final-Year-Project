@@ -20,7 +20,7 @@ This is a web-based tool for analyzing DNA sequences to predict transcription fa
 ### Steps
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/YahiyaV/Final-Year-Project/tree/main/DNA_TF_Binding_App
    cd dna-sequence-analysis
    ```
 2. Create a virtual environment (optional but recommended):
